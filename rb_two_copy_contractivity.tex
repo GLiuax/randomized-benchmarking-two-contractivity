@@ -1,0 +1,596 @@
+\documentclass[aps,prl,reprint,superscriptaddress,nofootinbib]{revtex4-2}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{pgfplots}
+\usepackage[colorlinks=true,allcolors=blue]{hyperref}
+\hypersetup{pdfauthor={Ao-Xiang Liu}}
+\pgfplotsset{compat=1.18}
+\pgfmathdeclarefunction{rbv}{1}{%
+ \pgfmathparse{0.0005611672278*(1-pow(0.9604,#1))}}
+\pgfmathdeclarefunction{rbvk}{1}{%
+ \pgfmathparse{rbv(#1)+0.0025}}
+\pgfmathdeclarefunction{bennett}{1}{%
+ \pgfmathparse{(1+#1)*ln(1+#1)-#1}}
+\pgfmathdeclarefunction{rbn}{1}{%
+ \pgfmathparse{ln(200)/(rbvk(#1)*bennett(0.02/rbvk(#1)))}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+
+\newcommand{\Tr}{\operatorname{Tr}}
+\newcommand{\spec}{\operatorname{spec}}
+\newcommand{\id}{\mathbb{I}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cU}{\mathcal{U}}
+\newcommand{\vct}{\operatorname{vec}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\cG}{\mathcal{G}}
+
+\begin{document}
+
+\title{Unitarity Controls Two-Copy Mixing and the Sampling Cost of Randomized Benchmarking}
+
+\author{Ao-Xiang Liu}
+\noaffiliation
+\date{August 9, 2026}
+
+\begin{abstract}
+Randomized benchmarking estimates a mean decay from finitely many random
+circuits, so its experimental cost is controlled by a two-copy transfer
+operator.  Wallman and Flammia conjectured that this operator is contractive
+for every nonunitary channel.  We prove the conjecture in arbitrary dimension
+and strengthen it to an exact Hilbert--Schmidt contraction: the two-copy core
+has induced norm and spectral radius equal to the channel unitarity $u$.
+Centering the channel further gives
+$\lVert T^m-f^{2m}\id\rVert_{2\to2}=u^m-f^{2m}$, where $f$ is the usual
+benchmarking decay.  This identity yields finite-length variance bounds with
+no Jordan condition number, rigorous sequence counts, and a direct estimator
+of normalized nonunitality.  We also give a noise-adapted certificate for
+arbitrary randomizing distributions.  For an approximate $2$-design with
+moment error $\epsilon_2$, two-copy mixing is guaranteed whenever
+$\epsilon_2a_4<1-u$, where
+$a_4=\lVert\phi^{\mathsf T}\phi-u\id\rVert_2$ is the contraction anisotropy.
+This converts a random-circuit moment gap into a sufficient, noise-adapted
+randomization depth.  The centered contraction also extends exactly to
+time-dependent Markovian noise through an ordered product formula.
+\end{abstract}
+
+\maketitle
+
+\paragraph{Problem.---}
+Randomized benchmarking replaces a fixed noise channel by products of
+randomly conjugated copies.  Its long-sequence variance is governed by the
+peripheral spectrum of a twirled two-copy channel
+\cite{WallmanFlammia2014}.  A channel is called \emph{two-contractive} when
+the eigenvalue $1$ of this twirl is algebraically simple and every other
+eigenvalue lies strictly inside the unit disk.  Wallman and Flammia
+proved two-contractivity for every nonunitary unital channel and, by a special
+property of qubit channels, for every nonunitary qubit channel.  They
+conjectured the same conclusion for arbitrary nonunital channels in every
+dimension \cite{WallmanFlammia2014}.
+We use this spectral definition throughout; it should not be conflated with
+variants of strong irreducibility that additionally require a faithful
+stationary state.
+
+Let $\Lambda:M_d\to M_d$ be completely positive and trace preserving (CPTP).
+Choose a trace-orthonormal Hermitian operator basis
+$B_0=\id_d/\sqrt d,B_1,\ldots,B_D$, where $D=d^2-1$.  The Hermitian Liouville
+matrix of $\Lambda$ is real and has the block form
+\begin{align}
+ [\Lambda]=
+ \begin{pmatrix}
+ 1&0\\
+ \bm{\alpha}&\phi
+ \end{pmatrix},
+ \qquad \phi\in M_D(\mathbb R).
+ \label{eq:liouville}
+\end{align}
+The vector $\bm{\alpha}$ is the nonunital part; $\phi$ is the restriction to
+the traceless Hermitian subspace.  We use the standard depolarizing parameter
+and unitarity
+\begin{align}
+ f=\frac{\Tr\phi}{D},
+ \qquad
+ u=\frac{\Tr(\phi^{\mathsf T}\phi)}{D}.
+ \label{eq:fu}
+\end{align}
+For a CPTP channel, $0\leq u\leq1$, and $u=1$ if and only if $\Lambda$ is a
+unitary channel \cite{WallmanEtAl2015}.
+Throughout, $\lVert\cdot\rVert_2$ denotes the Euclidean norm for vectors and
+the Hilbert--Schmidt norm for matrices, $\lVert\cdot\rVert_\infty$ denotes the
+operator norm, and $\lVert\cdot\rVert_{2\to2}$ is the induced
+Hilbert--Schmidt norm.
+
+Let $\{(p_g,U_g)\}_g$ be a finite weighted exact unitary $2$-design and let
+$R_g\in O(D)$ be the adjoint action of $U_g$ on the traceless Hermitian
+subspace.  Define $\Lambda^g=\cU_g^\dagger\circ\Lambda\circ\cU_g$ and
+\begin{align}
+ \cM_2=\sum_g p_g(\Lambda^g)^{\otimes2}.
+ \label{eq:twirl}
+\end{align}
+Uniform averaging over a finite design group is the original setting of
+Ref.~\cite{WallmanFlammia2014}; allowing weights does not change the proof.
+
+\begin{theorem}[Two-copy contractivity]
+For every CPTP map $\Lambda:M_d\to M_d$ and every exact unitary $2$-design,
+the nontrivial spectral radius of $\cM_2$ is
+\begin{align}
+ r_{\mathrm{nt}}(\cM_2)=\max\{|f|,u\}\leq\sqrt{u}.
+ \label{eq:main}
+\end{align}
+Hence $\Lambda$ is two-contractive if and only if it is nonunitary.
+\end{theorem}
+
+The conclusion resolves the conjecture in its full dimension-independent
+form.  It is stronger than a qualitative peripheral-spectrum statement:
+Eq.~\eqref{eq:main} identifies the exact exponential rate that controls all
+nontrivial modes once $f$ and $u$ are known.
+
+\paragraph{Proof.---}
+The exact $2$-design moment identity reproduces the Haar Schur average on the
+traceless adjoint representation.  Thus, for every $X\in M_D(\mathbb C)$,
+\begin{align}
+ \sum_g p_g R_g^{\mathsf T}X R_g
+ =\frac{\Tr X}{D}\id_D.
+ \label{eq:firsttwirl}
+\end{align}
+Taking $X=\phi$ gives $\sum_g p_gR_g^{\mathsf T}\phi R_g=f\id_D$.
+In the ordered block basis
+$\mathbb R\oplus(\mathbb R\otimes V)\oplus(V\otimes\mathbb R)
+\oplus(V\otimes V)$, with $V=\mathbb R^D$, Eq.~\eqref{eq:liouville} makes
+$\cM_2$ block lower triangular.  Its diagonal blocks are
+\begin{align}
+ 1,\qquad f\id_D,\qquad f\id_D,\qquad
+ T=\sum_g p_g A_g\otimes A_g,
+ \label{eq:blocks}
+\end{align}
+where $A_g=R_g^{\mathsf T}\phi R_g$.  All dependence on the nonunital vector
+$\bm{\alpha}$ occurs below the diagonal and hence cannot change the spectrum.
+
+It remains to control $T$ without assuming that the unital projection of
+$\Lambda$ is itself completely positive.  Identify $V\otimes V$ with
+$M_D(\mathbb C)$ by vectorization.  Because every $A_g$ is real,
+\begin{align}
+ T\vct(X)=\vct[\cT(X)],
+ \qquad
+ \cT(X)=\sum_g p_g A_g X A_g^{\mathsf T}
+ \label{eq:auxmap}
+\end{align}
+defines a completely positive map on the auxiliary matrix algebra.  A second
+Schur average yields
+\begin{align}
+ \cT(\id_D)
+ &=\sum_g p_g R_g^{\mathsf T}
+   (\phi\phi^{\mathsf T})R_g
+ =\frac{\Tr(\phi\phi^{\mathsf T})}{D}\id_D
+ =u\id_D.
+ \label{eq:unitalization}
+\end{align}
+The same calculation with $\phi^{\mathsf T}\phi$ gives
+$\cT^\dagger(\id_D)=u\id_D$.  If $u=0$, then $\phi=0$ and $T=0$.  If $u>0$,
+the map $\cT/u$ is bistochastic and completely positive.  Kadison's
+inequality and trace preservation imply
+\begin{align}
+ \lVert\cT(X)\rVert_2^2
+ \leq u\Tr[\cT(X^\dagger X)]
+ =u^2\lVert X\rVert_2^2.
+ \label{eq:hscontraction}
+\end{align}
+The identity operator attains the bound, and hence
+\begin{align}
+ \lVert T\rVert_{2\to2}=\rho(T)=u,
+ \qquad \lVert T^m\rVert_{2\to2}=u^m.
+ \label{eq:radiusT}
+\end{align}
+In particular every eigenvalue $\lambda$ of $T$ satisfies
+$|\lambda|\leq u$; Eq.~\eqref{eq:unitalization} shows that $u$ itself is an
+eigenvalue.  The induced-norm identity is stronger than the spectral claim
+and will remove every unknown Jordan prefactor from the finite-length bounds
+below.
+
+Finally, Hilbert--Schmidt Cauchy--Schwarz gives
+\begin{align}
+ |f|=\frac{|\Tr\phi|}{D}
+ \leq\sqrt{\frac{\Tr(\phi^{\mathsf T}\phi)}{D}}
+ =\sqrt{u}.
+ \label{eq:cauchy}
+\end{align}
+The spectrum of a block triangular matrix is the union of the spectra of its
+diagonal blocks.  Combining Eqs.~\eqref{eq:blocks}, \eqref{eq:radiusT}, and
+\eqref{eq:cauchy} proves Eq.~\eqref{eq:main}.  A nonunitary CPTP map has
+$u<1$, so the scalar top-left eigenvalue is algebraically simple and is the
+unique eigenvalue of unit modulus.  Conversely, a unitary channel has $u=1$,
+and the eigenvector
+$\vct(\id_D)$ supplies another unit-modulus eigenvalue.  This completes the
+proof.
+
+The auxiliary map also controls the difference between the two-copy and
+independent one-copy decays.  This difference, rather than $T$ alone, enters
+the randomized-benchmarking variance.
+
+\begin{lemma}[Centered contraction]
+For every integer $m\geq1$,
+\begin{align}
+ \bigl\lVert T^m-f^{2m}\id_{D^2}\bigr\rVert_{2\to2}
+ =u^m-f^{2m}.
+ \label{eq:centeredcontraction}
+\end{align}
+\end{lemma}
+\emph{Proof.---}
+Set $C_g=A_g-f\id_D$.  Since $\sum_gp_gA_g=f\id_D$,
+\begin{align}
+ T-f^2\id_{D^2}=\sum_gp_g C_g\otimes C_g
+ \label{eq:centeredmap}
+\end{align}
+is the Liouville matrix of the completely positive map
+$\cS(X)=\sum_gp_gC_gXC_g^{\mathsf T}$.  Equations
+\eqref{eq:firsttwirl} and \eqref{eq:unitalization} give
+$\cS(\id_D)=\cS^\dagger(\id_D)=(u-f^2)\id_D$.
+Because $T=f^2\id_{D^2}+S$, the binomial expansion shows that
+$T^m-f^{2m}\id_{D^2}$ is completely positive.  It and its adjoint map the
+identity to $(u^m-f^{2m})\id_D$.  Repeating
+Eq.~\eqref{eq:hscontraction} proves the upper bound in
+Eq.~\eqref{eq:centeredcontraction}; the identity attains it. \hfill$\square$
+
+\begin{corollary}[Nonstationary noise]
+Suppose a predetermined channel at step $j$ may vary, while the toggling-frame
+conjugators are sampled independently from an exact unitary $2$-design.  If
+$T_j$, $f_j$, and $u_j$ denote its two-copy core, depolarizing parameter, and
+unitarity, respectively, then
+\begin{align}
+ \left\lVert T_m\cdots T_1-
+ \left(\prod_{j=1}^m f_j^2\right)\id_{D^2}\right\rVert_{2\to2}
+ =\prod_{j=1}^m u_j-\prod_{j=1}^m f_j^2.
+ \label{eq:nonstationary}
+\end{align}
+No commutativity or stationarity assumption is required.
+\end{corollary}
+Indeed, each $T_j-f_j^2\id_{D^2}$ represents a completely positive map.
+Expanding the ordered product shows that the difference in
+Eq.~\eqref{eq:nonstationary} is completely positive; it and its adjoint map
+the identity to the scalar on the right-hand side.  The bistochastic
+contraction argument then gives equality.  Thus the core part of the
+finite-length fluctuation bound remains directly controlled under
+deterministic drift.
+
+\paragraph{Finite-length variance.---}
+We now specialize to standard randomized benchmarking with uniform sampling
+from a finite unitary-$2$-design group and gate-independent Markovian noise.
+Absorb the final inversion noise into the measurement and write
+\begin{align}
+ |\rho)=\begin{pmatrix}\rho_0\\ \bm r\end{pmatrix},\qquad
+ (E|=\begin{pmatrix}E_0&\bm e^{\mathsf T}\end{pmatrix},
+ \qquad \rho_0=d^{-1/2}.
+\end{align}
+Let $a=\lVert\bm\alpha\rVert_2$, $s=\lVert\bm r\rVert_2$,
+$e=\lVert\bm e\rVert_2$, $q=|f|$, and define
+\begin{align}
+ H_m(x,y)=\sum_{t=0}^{m-1}x^{m-1-t}y^t
+ =\begin{cases}
+ (x^m-y^m)/(x-y),&x\neq y,\\
+ mx^{m-1},&x=y.
+ \end{cases}
+ \label{eq:Hm}
+\end{align}
+
+\begin{theorem}[Variance and convergence]
+For a nonunitary CPTP map, the variance $\sigma_m^2$ across random sequences
+obeys
+\begin{align}
+ \sigma_m^2 \leq{}& \sigma_\infty^2(1-u^m)
+ +2\rho_0e^2sa\sqrt{u-f^2}\,H_m(q,u)
+ \notag\\
+ &+e^2s^2(u^m-f^{2m}),
+ \label{eq:variancebound}\\
+ |\sigma_m^2-\sigma_\infty^2|\leq{}&\sigma_\infty^2u^m
+ +2\rho_0e^2sa\sqrt{u-f^2}\,H_m(q,u)
+ \notag\\
+ &+e^2s^2(u^m-f^{2m}),
+ \label{eq:convergencebound}
+\end{align}
+where
+\begin{align}
+ \sigma_\infty^2
+ &=\frac{e^2a^2}{dD(1-u)}
+ =\frac{e^2}{d(d+1)}\eta_{\rm nu},\notag\\
+ \eta_{\rm nu}&=\frac{a^2}{(d-1)(1-u)}\in[0,1].
+ \label{eq:plateau}
+\end{align}
+The right side of Eq.~\eqref{eq:variancebound} may always be replaced by its
+minimum with $1/4$.
+\end{theorem}
+
+The normalized quantity $\eta_{\rm nu}$ is well defined for $u<1$.
+The inequality $\eta_{\rm nu}\leq1$ is the CPTP constraint
+$a^2\leq(d-1)(1-u)$ \cite{WallmanEtAl2015}.  Equation
+\eqref{eq:plateau} therefore turns the asymptotic variance into a calibrated
+measure of the fraction of the channel's purity-loss budget carried by its
+nonunital displacement.
+
+To prove the theorem, use the exact block-power decomposition of
+Ref.~\cite{WallmanFlammia2014}.  The injection from the scalar block is
+$P_1\bm\alpha^{\otimes2}=(a^2/D)\vct(\id_D)$ and
+$T\vct(\id_D)=u\vct(\id_D)$, which gives the first term in
+Eq.~\eqref{eq:variancebound}.  Centering $A_g$ as in
+Eq.~\eqref{eq:centeredmap} gives the two mixed-block estimates
+\begin{align}
+ \lVert b\rVert_{2\to2},\ \lVert c\rVert_{2\to2}
+ \leq a\sqrt{u-f^2}.
+ \label{eq:mixedbound}
+\end{align}
+Indeed, Jensen's inequality and the Schur average give
+$\E_g\lVert C_g\bm r\rVert_2^2=(u-f^2)\lVert\bm r\rVert_2^2$.
+Summing the lower-triangular convolution produces $H_m(q,u)$.
+Finally Eq.~\eqref{eq:centeredcontraction} bounds the traceless--traceless
+term.  Applying Cauchy--Schwarz to the measurement vector proves both
+inequalities.  If $\phi=f\id_D$, then $u=f^2$, both transient terms vanish,
+and the exact identity $\sigma_m^2=\sigma_\infty^2(1-u^m)$ holds.
+
+\paragraph{Sequence count and circuit reuse.---}
+Assume that $|\rho)$ represents a state and that $0\leq E\leq\id$ is a binary
+survival effect.  For each $n=1,\ldots,N$, sample a sequence independently and
+let $Y_{m,n}$ be its empirical survival probability from $K$ conditionally
+independent Bernoulli shots.  Set
+$\widehat F_m=N^{-1}\sum_nY_{m,n}$ and
+$\overline F_m=\E Y_{m,n}$.  If $V_m$ denotes the right side of
+Eq.~\eqref{eq:variancebound}, capped at $1/4$, then
+\begin{align}
+ \Var(Y_{m,n})&\leq
+ \overline V_{m,K}:=\min\!\left\{\frac14,V_m+\frac{1}{4K}\right\},\notag\\
+ \Var(\widehat F_m)&\leq\frac{\overline V_{m,K}}{N}.
+\end{align}
+Bennett's inequality therefore guarantees
+\begin{align}
+ \Pr\bigl[|\widehat F_m-\overline F_m|\geq\varepsilon\bigr]
+ \leq2\exp\!\left[-N\overline V_{m,K}
+ b\!\left(\frac{\varepsilon}{\overline V_{m,K}}\right)\right],
+ \label{eq:bennett}
+\end{align}
+where $b(x)=(1+x)\ln(1+x)-x$.  Thus it suffices to choose
+\begin{align}
+ N\geq\frac{\ln(2/\delta)}{\overline V_{m,K}
+ b(\varepsilon/\overline V_{m,K})}.
+ \label{eq:Nbound}
+\end{align}
+Unlike a boundedness-only confidence interval, this prescription uses the
+experimentally accessible $f$ and $u$ and a calibrated nonunitality.
+
+The same bound makes the circuit-reuse tradeoff explicit.  If compiling a new
+random circuit costs $c_{\rm circ}$ and each repeated shot costs
+$c_{\rm shot}$, the uncapped fixed-cost mean-square relaxation is minimized at
+\begin{align}
+ K_{\rm opt}=\frac12\sqrt{\frac{c_{\rm circ}}
+ {c_{\rm shot}V_m}}.
+ \label{eq:Kopt}
+\end{align}
+The implemented $K$ is an integer at least one; one evaluates the adjacent
+integers, and separately checks the regime in which the $1/4$ cap is active.
+General circuit-reuse optimization was developed in
+Ref.~\cite{ChenEtAl2025}; Eq.~\eqref{eq:variancebound} supplies its
+channel-dependent variance input without process tomography.
+
+Figure~\ref{fig:sampling} illustrates the resulting scale for the qutrit
+reset-mixture channel
+$\Lambda_p(\rho)=(1-p)\rho+p|0\rangle\!\langle0|\Tr\rho$ at $p=0.02$.
+Here $f=1-p$, $u=f^2$, $a^2=2p^2$, and pure ideal preparation and measurement
+give $e^2=s^2=2/3$.  At $m=100$, Eq.~\eqref{eq:plateau} gives
+$\sigma_m^2=5.51\times10^{-4}$.  With $K=100$ shots,
+$\varepsilon=0.02$, and $99\%$ confidence, Eq.~\eqref{eq:Nbound} requires
+$N=200$ unique sequences; the boundedness-only Hoeffding guarantee requires
+$6623$.
+
+\begin{figure*}[t]
+\centering
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+ width=\linewidth,height=0.52\linewidth,
+ ymode=log,xmin=1,xmax=250,ymin=1e-5,ymax=0.4,
+ xlabel={sequence length $m$},ylabel={variance bound},
+ tick label style={font=\footnotesize},label style={font=\footnotesize},
+ legend style={font=\scriptsize,draw=none,at={(0.98,0.52)},anchor=east},
+ grid=major,grid style={black!10}]
+\addplot[blue,thick,domain=1:250,samples=100] {rbv(x)};
+\addlegendentry{$\sigma_m^2$}
+\addplot[red!70!black,thick,domain=1:250,samples=100] {rbvk(x)};
+\addlegendentry{including $K=100$}
+\addplot[black!60,dashed,thick,domain=1:250] {0.25};
+\addlegendentry{boundedness only}
+\node[anchor=north west,font=\bfseries\footnotesize]
+ at (rel axis cs:0.02,0.97) {(a)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+ width=\linewidth,height=0.52\linewidth,
+ ymode=log,xmin=1,xmax=250,ymin=1e2,ymax=1e4,
+ xlabel={sequence length $m$},ylabel={unique sequences $N$},
+ tick label style={font=\footnotesize},label style={font=\footnotesize},
+ legend style={font=\scriptsize,draw=none,at={(0.98,0.52)},anchor=east},
+ grid=major,grid style={black!10}]
+\addplot[blue,thick,domain=1:250,samples=100] {rbn(x)};
+\addlegendentry{variance-aware Bennett}
+\addplot[black!60,dashed,thick,domain=1:250] {6623};
+\addlegendentry{Hoeffding}
+\node[anchor=north west,font=\bfseries\footnotesize]
+ at (rel axis cs:0.02,0.97) {(b)};
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\caption{Finite-sample consequence for a qutrit reset-mixture channel.
+(a) The exact sequence variance and the variance including $K=100$ shots per
+sequence remain far below the generic $1/4$ bound.  (b) The corresponding
+rigorous number of unique sequences for additive precision $0.02$ at $99\%$
+confidence.  The variance-aware guarantee reduces the boundedness-only count
+by more than one order of magnitude.}
+\label{fig:sampling}
+\end{figure*}
+
+\paragraph{Imperfect and shallow randomization.---}
+The completely positive representation does not require an exact design.
+For an arbitrary probability distribution $\nu$ over unitaries, let
+\begin{align}
+ A_U&=R_U^{\mathsf T}\phi R_U,&
+ B_\nu&=\E_\nu A_U,&
+ T_\nu&=\E_\nu A_U\otimes A_U,\notag\\
+ Q_L&=\E_\nu A_UA_U^{\mathsf T},&
+ Q_R&=\E_\nu A_U^{\mathsf T}A_U.
+ \label{eq:arbitrarysampler}
+\end{align}
+Set $s_L=\lVert Q_L\rVert_\infty$, $s_R=\lVert Q_R\rVert_\infty$, and
+$s=\min\{s_L,s_R\}$.  The two matrices $Q_L$ and $Q_R$ describe the
+worst-direction average squared contraction of the actual randomizer.
+
+\begin{theorem}[Noise-adapted randomizer certificate]
+For every sampling distribution $\nu$, the nontrivial spectral radius of its
+twirled two-copy channel satisfies
+\begin{align}
+ r_{\rm nt}\leq\sqrt{s}.
+ \label{eq:anisotropycertificate}
+\end{align}
+In particular, $s<1$ guarantees a unique peripheral eigenvalue even when
+$\nu$ is not a unitary design.
+\end{theorem}
+
+Indeed, the full twirl remains block lower triangular with diagonal blocks
+$1,B_\nu,B_\nu,T_\nu$.  Matrix Jensen inequalities give
+$B_\nu B_\nu^{\mathsf T}\leq Q_L$ and
+$B_\nu^{\mathsf T}B_\nu\leq Q_R$, so
+$\rho(B_\nu)\leq\sqrt{s}$.  Under vectorization $T_\nu$ represents the
+completely positive map $X\mapsto\E_\nu A_UXA_U^{\mathsf T}$.  Its value on
+the identity is $Q_L$, while the adjoint maps the identity to $Q_R$.
+The induced operator-norm bounds for the map and its adjoint imply
+$\rho(T_\nu)\leq s$.  Hence the two diagonal estimates give
+$r_{\rm nt}\leq\max\{\sqrt{s},s\}=\sqrt{s}$ when $s\leq1$.
+When $s\geq1$, the complete twirl is CPTP and therefore has spectral radius
+one, which again gives $r_{\rm nt}\leq1\leq\sqrt{s}$.  This proves
+Eq.~\eqref{eq:anisotropycertificate}.
+Operationally,
+\begin{align}
+ \bm x^{\mathsf T}Q_R\bm x=\E_\nu\lVert A_U\bm x\rVert_2^2,
+ \qquad
+ \bm y^{\mathsf T}Q_L\bm y=\E_\nu\lVert A_U^{\mathsf T}\bm y\rVert_2^2,
+\end{align}
+so $s$ can be bounded from a calibrated directional-contraction experiment
+or from a sampler's moment gap.
+
+For the latter application, define the adjoint second-moment error
+\begin{align}
+ \epsilon_2=\lVert\cG_\nu-\cG_{\rm Haar}\rVert_{2\to2},\qquad
+ \cG_\nu(X)=\E_\nu R_U^{\mathsf T}XR_U,
+ \label{eq:designerror}
+\end{align}
+and define the centered anisotropies
+\begin{align}
+ a_2&=\lVert\phi-f\id_D\rVert_2=\sqrt{D(u-f^2)},\notag\\
+ a_4&=\lVert\phi^{\mathsf T}\phi-u\id_D\rVert_2
+ =\sqrt{\Tr[(\phi^{\mathsf T}\phi)^2]-Du^2}.
+ \label{eq:anisotropies}
+\end{align}
+Compression of the unitary second-moment operator gives
+\begin{align}
+ s_L,s_R\leq u+\epsilon_2a_4.
+\end{align}
+Consequently
+\begin{align}
+ \epsilon_2a_4<1-u
+ \label{eq:designthreshold}
+\end{align}
+is a sufficient, noise-dependent design threshold, with
+$r_{\rm nt}\leq\sqrt{u+\epsilon_2a_4}$.  Retaining the centered one-copy
+bound gives the sharper estimate
+\begin{align}
+ r_{\rm nt}\leq R(\epsilon_2):=
+ \max\!\left\{u+\epsilon_2a_4,
+ \min\!\left(|f|+\epsilon_2a_2,
+ \sqrt{u+\epsilon_2a_4}\right)\right\}.
+ \label{eq:refinedapproxrate}
+\end{align}
+For a nonunitary reference channel, $u<1$.  If an $L$-layer reversible
+random-circuit sampler has
+$\epsilon_2(L)\leq C(1-\gamma)^L$, with $C>0$ and $0<\gamma<1$, then for
+$a_4>0$ the minimum sufficient integer depth is
+\begin{align}
+ L_{\min}=\max\!\left\{0,
+ \left\lfloor\frac{\ln[Ca_4/(1-u)]}{-\ln(1-\gamma)}\right\rfloor+1
+ \right\}.
+ \label{eq:depth}
+\end{align}
+If $a_4=0$, every depth satisfies Eq.~\eqref{eq:designthreshold}.  This
+converts a random-circuit moment gap into a noise-adapted randomization depth,
+rather than demanding a fixed design accuracy for every device
+\cite{FrancaHashagen2018,HeinrichEtAl2022}.
+
+Finally, consider a factorized protocol that independently samples an
+exact-design label $g$ at each step and whose one- and two-copy toggling-frame
+moments factorize.  For gate-correlated traceless blocks $\phi_g$, set
+$A_g=R_g^{\mathsf T}\phi_gR_g$ and use the reference
+$A_g^{(0)}=R_g^{\mathsf T}\phi R_g$.  The same method gives a sharp robustness
+radius.  If
+$\sup_g\lVert\phi_g-\phi\rVert_\infty\leq\zeta$, then
+\begin{align}
+ r_{\rm nt}\leq
+ \max\!\left\{|f|+\zeta,
+ u+2\lVert\phi\rVert_\infty\zeta+\zeta^2\right\}.
+ \label{eq:gatedependent}
+\end{align}
+The gap scaling cannot be improved in general: for a qubit, take
+$\phi=c\id_3$ and $B=\operatorname{diag}(c,c,1)$, with $0<c<1$, and set
+$\phi_g=R_gBR_g^{\mathsf T}$.  Every gate error is a nonunitary dephasing
+channel and its average unitarity is $(1+2c^2)/3<1$, but $A_g=B$ has an exact
+unit eigenvalue.  Here $\zeta=1-c$, precisely the reference one-copy gap.
+Equation~\eqref{eq:gatedependent} concerns protocols whose one-step
+toggling-frame averages factorize; ordinary gate-dependent RB generally
+requires an enlarged convolution transfer operator
+\cite{Wallman2018,MerkelEtAl2021}.
+
+\paragraph{Relation to prior work.---}
+The original proof for unital channels bounded the Euclidean norm of the
+two-copy block by using Hilbert--Schmidt contractivity of a unital channel
+\cite{WallmanFlammia2014}.  That route does not apply directly to a nonunital
+channel because its traceless block can have singular values larger than one.
+The auxiliary map in Eq.~\eqref{eq:auxmap} changes the relevant norm: after
+Schur averaging it is unital on $M_D$, irrespective of whether $\Lambda$ is
+unital.
+
+Helsen \emph{et al.} later bounded the scalar modes of the traceless-symmetric
+sector of the multiqubit Clifford twirl by the unitarity
+\cite{HelsenEtAl2019}.  Their representation-specific result is sufficient for
+the variance protocol studied there.  The theorem above covers arbitrary
+dimensions and exact unitary $2$-designs, requires no multiplicity-free
+decomposition, controls the spectrum in absolute value, and includes the
+antisymmetric sector.  Thus it proves the original full two-contractivity
+statement rather than only the physically sampled symmetric sector.
+
+\paragraph{Discussion.---}
+The proof reduces a peripheral-spectrum problem on a $D^2$-dimensional tensor
+representation to the elementary fact that a unital completely positive map
+is contractive.  The same normalization that proves the conjecture also
+removes the unknown Jordan condition number from finite-length statistics.
+The resulting chain is operational: standard RB and unitarity RB supply
+$f$ and $u$; Eq.~\eqref{eq:variancebound} turns them into a variance bound;
+Eq.~\eqref{eq:Nbound} turns that variance into a sequence count; and
+Eq.~\eqref{eq:Kopt} allocates repetitions between new and reused circuits.
+The arbitrary-sampler certificate further shows that a full design is
+sufficient but not necessary.  What matters is whether every directional
+second moment contracts for the noise actually being randomized.
+
+The present gate-dependent statement is deliberately restricted to
+factorized toggling-frame sampling.  Extending the same dimension-independent
+variance and sample guarantees to the convolution transfer operator of
+ordinary gate-dependent RB is the remaining application-level problem.
+
+\bibliography{rb_two_copy_contractivity}
+
+\end{document}
